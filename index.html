@@ -490,7 +490,11 @@
     });
 
     $share.addEventListener("click", async () => {
-      const text = `두쫀쿠 탭! 지금 내 최고기록: ${best.toLocaleString("ko-KR")}점\n너도 해봐 ㅋㅋ`;
+        const text =
+        `두쫀쿠 10초 챌린지 결과: ${score.toLocaleString("ko-KR")}점
+        캡처해서 인증해봐 ㅋㅋ
+        너도 해봐 👉`;
+
       const url = location.href;
 
       if (navigator.share){
