@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>두쫀쿠 탭!</title>
+  <meta name="description" content="아무 생각 없이 두쫀쿠를 탭! 탭할수록 점수가 올라간다." />
+  <style>
+    :root{
+      --bg1:#0b1020;
+      --bg2:#101a33;
+      --card: rgba(255,255,255,.08);
+      --card2: rgba(255,255,255,.06);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.65);
+      --line: rgba(255,255,255,.12);
+      --shadow: 0 16px 40px rgba(0,0,0,.35);
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", Arial, "Apple SD Gothic Neo", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(900px 900px at 20% 10%, rgba(127, 179, 255, .22), transparent 60%),
+        radial-gradient(700px 700px at 80% 20%, rgba(255, 122, 160, .18), transparent 55%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .wrap{
+      width:min(520px, 100%);
+    }
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:12px;
+    }
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .title h1{
+      margin:0;
+      font-size:22px;
+      letter-spacing:-.4px;
+    }
+    .title p{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .card{
+      background: var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      box-shadow: var(--shadow);
+      padding:16px;
+      overflow:hidden;
+      position:relative;
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .stat{
+      background: var(--card2);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+    }
+    .stat .label{
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:6px;
+    }
+    .stat .value{
+      font-size:22px;
+      font-weight:800;
+      letter-spacing:-.6px;
+    }
+
+    .stage{
+      height: 360px;
+      border-radius:16px;
+      border:1px dashed rgba(255,255,255,.18);
+      background: rgba(0,0,0,.12);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+      overflow:hidden;
+      touch-action: manipulation;
+    }
+
+    /* 두쫀쿠 버튼(임시 캐릭터) */
+    .jj{
+      width: 190px;
+      height: 190px;
+      border-radius: 999px;
+      background:
+        radial-gradient(60px 60px at 35% 35%, rgba(255,255,255,.55), transparent 60%),
+        radial-gradient(120px 120px at 70% 80%, rgba(0,0,0,.28), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.06));
+      border:1px solid rgba(255,255,255,.22);
+      box-shadow:
+        0 20px 45px rgba(0,0,0,.35),
+        inset 0 2px 10px rgba(255,255,255,.10);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:900;
+      letter-spacing:-.8px;
+      cursor:pointer;
+      transform: translateZ(0);
+      transition: transform .06s ease;
+      position:relative;
+    }
+    .jj:active{ transform: scale(.975); }
+    .jj .face{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
+      opacity:.95;
+    }
+    .jj .eyes{
+      display:flex;
+      gap:18px;
+      margin-top:8px;
+    }
+    .jj .eye{
+      width:14px; height:14px; border-radius:50%;
+      background: rgba(255,255,255,.9);
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    .jj .mouth{
+      width:46px; height:10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.75);
+      opacity:.9;
+    }
+    .jj .name{
+      margin-top:6px;
+      font-size:16px;
+      color: rgba(255,255,255,.9);
+      text-shadow: 0 6px 18px rgba(0,0,0,.35);
+    }
+
+    /* 두쫀쿠 버튼: 원형 그대로 유지 */
+    .jj{
+      width: 210px;
+      height: 210px;
+      border-radius: 999px; /* 원형 유지 */
+      background: #ffffff;
+      border-radius: 999px;
+      box-shadow:
+        0 12px 30px rgba(0,0,0,.18);
+      border: none;
+      padding: 0;
+      position: relative;
+      cursor: pointer;
+      overflow: hidden; /* 원 안에서만 보이게 */
+      transform: translateZ(0);
+      transition: transform .06s ease;
+    }
+
+    .jj:active{
+      transform: scale(.97);
+    }
+
+    /* 본체 */
+    .jj-base{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;   /* 원형 꽉 차게 */
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      filter: drop-shadow(0 18px 30px rgba(0,0,0,.35));
+    }
+
+    /* 표정 레이어(기본은 숨김) */
+    .jj-face{
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 100%;          /* 얼굴 스티커 크기 */
+      height: auto;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      transition: opacity 80ms ease;
+    }
+
+    /* 맞았을 때 보이게 */
+    .jj.hit .jj-face{
+      opacity: 1;
+    }
+
+    /* 맞았을 때 흔들림 효과(선택) */
+    @keyframes wobble{
+      0%{ transform: scale(.98) rotate(0deg); }
+      25%{ transform: scale(.98) rotate(-2deg); }
+      50%{ transform: scale(.98) rotate(2deg); }
+      75%{ transform: scale(.98) rotate(-1deg); }
+      100%{ transform: scale(.98) rotate(0deg); }
+    }
+    .jj.hit{
+      animation: wobble 160ms ease;
+    }
+
+    /* +1 팝업 */
+    .pop{
+      position:absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-weight:900;
+      font-size:18px;
+      opacity:0;
+      pointer-events:none;
+      text-shadow: 0 10px 24px rgba(0,0,0,.4);
+      animation: pop 700ms ease-out forwards;
+    }
+    @keyframes pop{
+      0%   { opacity:0; transform: translate(-50%,-50%) scale(.9); }
+      10%  { opacity:1; }
+      100% { opacity:0; transform: translate(calc(-50% + var(--dx)), calc(-50% - 90px)) scale(1.15); }
+    }
+
+    /* 업적 토스트 */
+    .toast{
+      position:absolute;
+      left:50%;
+      top: 18px;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(10px);
+      padding:10px 12px;
+      border-radius:999px;
+      font-size:13px;
+      color: rgba(255,255,255,.92);
+      opacity:0;
+      pointer-events:none;
+      animation: toast 1800ms ease forwards;
+    }
+    @keyframes toast{
+      0% { opacity:0; transform: translateX(-50%) translateY(-8px); }
+      10%{ opacity:1; transform: translateX(-50%) translateY(0); }
+      80%{ opacity:1; }
+      100%{ opacity:0; transform: translateX(-50%) translateY(-8px); }
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      margin-top:12px;
+    }
+    button{
+      flex:1;
+      border:none;
+      border-radius:14px;
+      padding:12px 14px;
+      background: rgba(255,255,255,.10);
+      color: var(--text);
+      font-weight:700;
+      cursor:pointer;
+      border:1px solid rgba(255,255,255,.14);
+    }
+    button:hover{ background: rgba(255,255,255,.14); }
+    button:active{ transform: translateY(1px); }
+
+    .hint{
+      margin-top:10px;
+      color: var(--muted);
+      font-size:12px;
+      text-align:center;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title">
+        <h1>두쫀쿠 탭!</h1>
+        <p>아무 생각 없이 탭하면 점수가 오른다.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="stats">
+        <div class="stat">
+          <div class="label">현재 점수</div>
+          <div class="value" id="score">0</div>
+        </div>
+        <div class="stat">
+          <div class="label">최고 기록</div>
+          <div class="value" id="best">0</div>
+        </div>
+      </div>
+
+      <div class="stage" id="stage">
+        <div class="jj" id="jj" role="button" aria-label="두쫀쿠 탭 버튼">
+          <img src="jj.png" alt="두쫀쿠" class="jj-base" draggable="false" />
+          <img src="face_hit.png" alt="" class="jj-face" draggable="false" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="reset">리셋</button>
+        <button id="share">친구에게 공유</button>
+      </div>
+
+      <div class="hint">팁: 모바일에서는 더 재밌게 느껴지도록 진동(가능한 기기에서)도 넣어놨어.</div>
+    </div>
+  </div>
+
+  <script>
+    // ---- state
+    let score = 0;
+    let best = Number(localStorage.getItem("jj_best") || 0);
+    let unlocked = new Set(JSON.parse(localStorage.getItem("jj_unlock") || "[]"));
+
+    const $score = document.getElementById("score");
+    const $best  = document.getElementById("best");
+    const $jj    = document.getElementById("jj");
+    const $stage = document.getElementById("stage");
+    const $reset = document.getElementById("reset");
+    const $share = document.getElementById("share");
+
+    const achievements = [
+      { at: 100,   text: "🎉 두쫀쿠 입문!" },
+      { at: 1000,  text: "🔥 두쫀쿠 중독자!" },
+      { at: 10000, text: "👑 두쫀쿠 전설!" },
+      { at: 100000, text: "🌀 손가락 초인!" }
+    ];
+
+    function render(){
+      $score.textContent = score.toLocaleString("ko-KR");
+      $best.textContent  = best.toLocaleString("ko-KR");
+    }
+
+    function vibrate(ms=12){
+      if (navigator.vibrate) navigator.vibrate(ms);
+    }
+
+    function spawnPop(x, y){
+      const pop = document.createElement("div");
+      pop.className = "pop";
+      pop.textContent = "+1";
+      const dx = (Math.random()*120 - 60).toFixed(0) + "px";
+      pop.style.setProperty("--dx", dx);
+
+      // stage 기준 좌표로 배치
+      const rect = $stage.getBoundingClientRect();
+      pop.style.left = (x - rect.left) + "px";
+      pop.style.top  = (y - rect.top)  + "px";
+
+      $stage.appendChild(pop);
+      pop.addEventListener("animationend", () => pop.remove());
+    }
+
+    function toast(msg){
+      const t = document.createElement("div");
+      t.className = "toast";
+      t.textContent = msg;
+      $stage.appendChild(t);
+      t.addEventListener("animationend", () => t.remove());
+    }
+
+    function checkAchievements(){
+      for (const a of achievements){
+        if (score >= a.at && !unlocked.has(String(a.at))){
+          unlocked.add(String(a.at));
+          localStorage.setItem("jj_unlock", JSON.stringify([...unlocked]));
+          toast(a.text);
+        }
+      }
+    }
+
+    function showHitFace(){
+      $jj.classList.add("hit");
+      clearTimeout(showHitFace._t);
+      showHitFace._t = setTimeout(() => $jj.classList.remove("hit"), 120);
+    }
+
+    function addPoint(clientX, clientY){
+      score += 1;
+      if (score > best){
+        best = score;
+        localStorage.setItem("jj_best", String(best));
+      }
+      render();
+      checkAchievements();
+      vibrate(10);
+
+      showHitFace();
+      spawnPop(clientX, clientY);
+    }
+
+    // 클릭/터치 이벤트
+    function handleTap(e){
+      // 마우스/터치 좌표 통일
+      const point = e.touches ? e.touches[0] : e;
+      addPoint(point.clientX, point.clientY);
+    }
+
+    $jj.addEventListener("click", handleTap);
+    $jj.addEventListener("touchstart", handleTap, { passive: true });
+
+    $reset.addEventListener("click", () => {
+      score = 0;
+      render();
+      toast("🧼 리셋 완료!");
+    });
+
+    $share.addEventListener("click", async () => {
+      const text = `두쫀쿠 탭! 지금 내 최고기록: ${best.toLocaleString("ko-KR")}점\n너도 해봐 ㅋㅋ`;
+      const url = location.href;
+
+      if (navigator.share){
+        try{
+          await navigator.share({ title: "두쫀쿠 탭!", text, url });
+          toast("📤 공유 완료!");
+          return;
+        }catch(_){}
+      }
+
+      // 공유 API 없으면 클립보드로
+      try{
+        await navigator.clipboard.writeText(text + "\n" + url);
+        toast("📋 링크 복사됨!");
+      }catch(_){
+        toast("복사 실패… 주소창 링크로 공유해줘!");
+      }
+    });
+
+    // init
+    render();
+    toast("👉 두쫀쿠를 탭해봐!");
+  </script>
+</body>
+</html>
