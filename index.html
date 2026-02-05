@@ -326,6 +326,12 @@
         </div>
       </div>
 
+      <div id="timer" style="font-size:14px; opacity:.8; margin-bottom:8px;">
+        ⏱ 제한 없음
+      </div>
+
+      <button id="challengeBtn">10초 챌린지 시작</button>
+
       <div class="stage" id="stage">
         <div class="jj" id="jj" role="button" aria-label="두쫀쿠 탭 버튼">
           <img src="jj.png" alt="두쫀쿠" class="jj-base" draggable="false" />
@@ -359,12 +365,18 @@
     let best = Number(localStorage.getItem("jj_best") || 0);
     let unlocked = new Set(JSON.parse(localStorage.getItem("jj_unlock") || "[]"));
 
+    let timeLeft = null;
+    let timerId = null;
+    let challengeMode = false;
+
     const $score = document.getElementById("score");
     const $best  = document.getElementById("best");
     const $jj    = document.getElementById("jj");
     const $stage = document.getElementById("stage");
     const $reset = document.getElementById("reset");
     const $share = document.getElementById("share");
+    const $timer = document.getElementById("timer");
+    const $challengeBtn = document.getElementById("challengeBtn");
 
     const achievements = [
       { at: 100,   text: "🎉 두쫀쿠 입문!" },
@@ -423,6 +435,8 @@
     }
 
     function addPoint(clientX, clientY){
+      if (challengeMode === false && timeLeft === 0) return;
+
       score += 1;
       if (score > best){
         best = score;
@@ -435,6 +449,29 @@
       showHitFace();
       spawnPop(clientX, clientY);
     }
+
+    $challengeBtn.addEventListener("click", () => {
+      // 초기화
+      score = 0;
+      render();
+
+      challengeMode = true;
+      timeLeft = 10;
+      $timer.textContent = `⏱ ${timeLeft}초`;
+
+      clearInterval(timerId);
+      timerId = setInterval(() => {
+        timeLeft--;
+        $timer.textContent = `⏱ ${timeLeft}초`;
+
+        if (timeLeft <= 0) {
+          clearInterval(timerId);
+          challengeMode = false;
+          $timer.textContent = "⏱ 종료!";
+          alert(`10초 종료!\n점수: ${score}\n캡처해서 공유하세요 📸`);
+        }
+      }, 1000);
+    });
 
     // 클릭/터치 이벤트
     function handleTap(e){
